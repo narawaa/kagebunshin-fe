@@ -12,12 +12,12 @@ export const Navbar = () => {
             height={32}
             className="rounded object-cover max-md:w-8 max-md:h-8"
           />
-          <h1 className="md:text-lg font-bold">Kagebunshin</h1>
+          <h1 className="text-sm md:text-lg font-bold">Kagebunshin</h1>
         </div>
 
-      <div className="flex items-center gap-2 md:gap-3 text-white text-sm md:text-md">
-        <Link href="/" className="w-32 bg-linear-to-r from-orange-600 to-orange-500 px-3 py-1 rounded-xl font-bold hover:from-orange-300 text-center">Search</Link>
-        <Link href="/query-editor" className="w-32 bg-linear-to-r from-orange-600 to-orange-500 px-3 py-1 rounded-xl font-bold hover:from-orange-300 text-center">Query Editor</Link>
+      <div className="flex items-center gap-1 md:gap-3 text-orange-300 md:text-white text-sm md:text-md max-md:underline max-md:underline-offset-4">
+        <Link href="/" className="md:w-32 md:bg-linear-to-r md:from-orange-600 md:to-orange-500 px-3 py-1 rounded-xl font-bold hover:from-orange-300 text-center">Search</Link>
+        <Link href="/query-editor" className="md:w-32 md:bg-linear-to-r md:from-orange-600 md:to-orange-500 px-3 py-1 rounded-xl font-bold hover:from-orange-300 text-center">Query Editor</Link>
       </div>
     </nav>
   );
