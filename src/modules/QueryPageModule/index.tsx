@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { SparqlRowProps } from './interface';
 import { Textarea } from '@/components/ui/textarea';
 import { executeSparqlQuery } from '@/services/queryService';
@@ -56,6 +56,7 @@ export const QueryPageModule = () => {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<SparqlRowProps[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -63,7 +64,10 @@ export const QueryPageModule = () => {
   } | null>(null);
 
   const handleRun = async () => {
+    setIsLoading(true);
+    
     const res = await executeSparqlQuery(query);
+    setIsLoading(false);
 
     if (res.status !== 200) {
       setError(res.message || "Terjadi kesalahan saat menjalankan query. Silakan coba lagi.");
@@ -74,7 +78,6 @@ export const QueryPageModule = () => {
     setError(null);
     setResult(res.data);
   };
-
 
   // sorting logic
   const sortedResult = useMemo(() => {
@@ -92,6 +95,24 @@ export const QueryPageModule = () => {
       return 0;
     });
   }, [result, sortConfig]);
+
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => setInitialLoading(false), 300);
+    });
+  }, []);
+
+  //  Skeleton
+  if (initialLoading) {
+    return (
+      <div className="w-full min-h-screen px-4 md:px-8 lg:px-16 pb-8 pt-10 space-y-4">
+        <div className="w-44 h-10 bg-slate-200 rounded-md animate-pulse mt-3"></div>
+        <div className="h-[270px] bg-slate-200 rounded-xl animate-pulse"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen px-4 md:px-8 lg:px-16 pb-8 pt-10 space-y-4 bg-white">
@@ -140,8 +161,12 @@ export const QueryPageModule = () => {
             onClick={handleRun}
             className="flex items-center gap-2 text-white"
           >
-            <Play size={18} />
-            {queryType === "sparql" ? "Jalankan Query" : "Tanya Jawaban"}
+            {isLoading ? (
+              <span className="animate-spin border-2 border-white border-t-transparent rounded-full w-4 h-4"></span>
+            ) : (
+              <Play size={18} />
+            )}
+            {isLoading ? "Memproses..." : "Jalankan Query"}
           </Button>
         </CardContent>
       </Card>
@@ -200,24 +225,22 @@ export const QueryPageModule = () => {
                 </TableHeader>
 
                 <TableBody>
-                  <AnimatePresence>
-                    {sortedResult.map((row, idx) => (
-                      <motion.tr
-                        key={idx}
-                        initial={{ opacity: 0, y: 6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 6 }}
-                        transition={{ duration: 0.45, delay: idx * 0.1 }}
-                        className="hover:bg-orange-50"
-                      >
-                        {Object.values(row).map((v, i) => (
-                          <TableCell key={i} className="text-slate-800">
-                            {v}
-                          </TableCell>
-                        ))}
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
+                  {sortedResult.map((row, idx) => (
+                    <motion.tr
+                      key={JSON.stringify(row)}
+                      layout
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.45, delay: idx * 0.1 }}
+                      className="hover:bg-orange-50"
+                    >
+                      {Object.values(row).map((v, i) => (
+                        <TableCell key={i} className="text-slate-800">
+                          {v}
+                        </TableCell>
+                      ))}
+                    </motion.tr>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
