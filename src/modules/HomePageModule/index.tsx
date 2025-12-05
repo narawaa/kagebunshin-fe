@@ -1,16 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, Info, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { InfoModal } from './components/InfoModal'
-import { SearchAllResult, SearchAnimeResult, SearchCharacterResult, SearchResultProps } from './interface'
+import { SearchAllResult, SearchAnimeResult, SearchCharacterResult } from './interface'
 import { searchAll, searchAnime, searchCharacter, searchAnimeByTheme } from "@/services/searchService";
 import { ButtonGroup } from '@/components/ui/button-group'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { useRouter } from "next/navigation";
+import { THEMES } from './const'
+import Image from 'next/image'
 
 
 export const HomePageModule = () => {
@@ -18,13 +19,10 @@ export const HomePageModule = () => {
   const [searchQuery, setSearchQuery] = useState<string>('first');
   const [results, setResults] = useState<(SearchAllResult | SearchAnimeResult | SearchCharacterResult)[]>([]);
   
-  // state for selected item detail, abaikan, nanti ga dipakai
-  const [selected, setSelected] = useState<SearchResultProps | null>(null);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  
   // state for filter: isActiveFilter nunjukin apakah ada filter yg aktif, whichFilter nunjukin filter apa yg aktif (anime/character/theme:namatheme)
   const [isActiveFilter, setIsActiveFilter] = useState<boolean>(false);
   const [whichFilter, setWhichFilter] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false);
   
   const router = useRouter();
   
@@ -32,31 +30,6 @@ export const HomePageModule = () => {
     const parts = resource.split("/");
     return parts[parts.length - 1];
   };
-    
-  // dummy data
-  const dummyData = [
-    {
-      id: 1,
-      label: 'Albert Einstein',
-      description: 'Theoretical physicist known for the theory of relativity.',
-      type: 'Person',
-      born: 'Ulm, Germany',
-    },
-    {
-      id: 2,
-      label: 'Marie Curie',
-      description: 'Physicist and chemist who conducted pioneering research on radioactivity.',
-      type: 'Person',
-      born: 'Warsaw, Poland',
-    },
-    {
-      id: 3,
-      label: 'Theory of Relativity',
-      description: 'A fundamental theory in physics developed by Albert Einstein.',
-      type: 'Concept',
-      born: '-',
-    },
-  ]
   
   const handleFilterChange = (filter: string) => {
     if (whichFilter === filter) {
@@ -68,21 +41,30 @@ export const HomePageModule = () => {
     
     setIsActiveFilter(true);
     setWhichFilter(filter);
-
   }
 
   const handleSearch = async (e?: React.FormEvent) => {
-    setSearchQuery(query)
-
     if (e) e.preventDefault();
+    
+    setSearchQuery(query)
+    console.log("Searching for:", query, "with filter:", whichFilter, "active:", isActiveFilter);
+
+    setLoading(true);
+    setResults([]);
+
     if (query.trim() === '') {
       setResults([])
-      setSelected(null)
+      setLoading(false);
       return
     }
 
     try {
       let response;
+
+      // jika query kosong → stop
+      if (query.trim() === '') {
+        return;
+      }
 
       // 1. no filter
       if (!isActiveFilter || whichFilter === null) {
@@ -116,18 +98,9 @@ export const HomePageModule = () => {
     } catch (error) {
       console.error("Search error:", error);
       setResults([]);
+    } finally {
+      setLoading(false);
     }
-  }
-
-  const handleDetail = (item: SearchResultProps) => {
-    setIsOpen(!isOpen);
-    setSelected({
-      id: item.id,
-      label: item.label,
-      description: item.description ?? '',
-      type: item.type ?? '',
-      born: item.born ?? ''
-    })
   }
 
   return (
@@ -143,18 +116,18 @@ export const HomePageModule = () => {
         </motion.h1>
 
         <div className='flex flex-row items-center gap-3 mb-3 pt-8'>
-          <p className='text-xs md:text-sm font-bold'>Filter pencarian berdasarkan:</p>
+          <p className='text-sm md:text-base font-bold'>Filter pencarian berdasarkan:</p>
           <ButtonGroup className='border-2 border-black rounded-lg '>
             <Button
               onClick={() => handleFilterChange('anime')}
-              className={isActiveFilter && whichFilter === 'anime' ? 'bg-gray-700' : 'bg-black text-muted-foreground'}
+              className={isActiveFilter && whichFilter === 'anime' ? 'bg-gray-700' : 'bg-black text-gray-300'}
             >
               Anime
             </Button>
 
             <Button
               onClick={() => handleFilterChange('character')}
-              className={isActiveFilter && whichFilter === 'character' ? 'bg-gray-700' : 'bg-black text-muted-foreground'}
+              className={isActiveFilter && whichFilter === 'character' ? 'bg-gray-700' : 'bg-black text-gray-300'}
             >
               Character
             </Button>
@@ -178,59 +151,12 @@ export const HomePageModule = () => {
                 />
               </SelectTrigger>
 
-              <SelectContent className="max-h-64 overflow-y-auto">
-                <SelectItem value="theme:adult%20cast">Adult Cast</SelectItem>
-                <SelectItem value="theme:anthropomorphic">Anthropomorphic</SelectItem>
-                <SelectItem value="theme:cgdct">CGDCT</SelectItem>
-                <SelectItem value="theme:childcare">Childcare</SelectItem>
-                <SelectItem value="theme:combat%20sports">Combat Sports</SelectItem>
-                <SelectItem value="theme:crossdressing">Crossdressing</SelectItem>
-                <SelectItem value="theme:delinquents">Delinquents</SelectItem>
-                <SelectItem value="theme:detective">Detective</SelectItem>
-                <SelectItem value="theme:educational">Educational</SelectItem>
-                <SelectItem value="theme:gag%20humor">Gag Humor</SelectItem>
-                <SelectItem value="theme:gore">Gore</SelectItem>
-                <SelectItem value="theme:harem">Harem</SelectItem>
-                <SelectItem value="theme:high%20stakes%20game">High Stakes Game</SelectItem>
-                <SelectItem value="theme:historical">Historical</SelectItem>
-                <SelectItem value="theme:idols%20female">Idols (Female)</SelectItem>
-                <SelectItem value="theme:idols%20male">Idols (Male)</SelectItem>
-                <SelectItem value="theme:isekai">Isekai</SelectItem>
-                <SelectItem value="theme:iyashikei">Iyashikei</SelectItem>
-                <SelectItem value="theme:love%20polygon">Love Polygon</SelectItem>
-                <SelectItem value="theme:love%20status%20quo">Love Status Quo</SelectItem>
-                <SelectItem value="theme:magical%20sex%20shift">Magical Sex Shift</SelectItem>
-                <SelectItem value="theme:mahou%20shoujo">Mahou Shoujo</SelectItem>
-                <SelectItem value="theme:martial%20arts">Martial Arts</SelectItem>
-                <SelectItem value="theme:mecha">Mecha</SelectItem>
-                <SelectItem value="theme:medical">Medical</SelectItem>
-                <SelectItem value="theme:military">Military</SelectItem>
-                <SelectItem value="theme:music">Music</SelectItem>
-                <SelectItem value="theme:mythology">Mythology</SelectItem>
-                <SelectItem value="theme:organized%20crime">Organized Crime</SelectItem>
-                <SelectItem value="theme:otaku%20culture">Otaku Culture</SelectItem>
-                <SelectItem value="theme:parody">Parody</SelectItem>
-                <SelectItem value="theme:performing%20arts">Performing Arts</SelectItem>
-                <SelectItem value="theme:pets">Pets</SelectItem>
-                <SelectItem value="theme:psychological">Psychological</SelectItem>
-                <SelectItem value="theme:racing">Racing</SelectItem>
-                <SelectItem value="theme:reincarnation">Reincarnation</SelectItem>
-                <SelectItem value="theme:reverse%20harem">Reverse Harem</SelectItem>
-                <SelectItem value="theme:samurai">Samurai</SelectItem>
-                <SelectItem value="theme:school">School</SelectItem>
-                <SelectItem value="theme:showbiz">Showbiz</SelectItem>
-                <SelectItem value="theme:space">Space</SelectItem>
-                <SelectItem value="theme:strategy%20game">Strategy Game</SelectItem>
-                <SelectItem value="theme:super%20power">Super Power</SelectItem>
-                <SelectItem value="theme:survival">Survival</SelectItem>
-                <SelectItem value="theme:team%20sports">Team Sports</SelectItem>
-                <SelectItem value="theme:time%20travel">Time Travel</SelectItem>
-                <SelectItem value="theme:urban%20fantasy">Urban Fantasy</SelectItem>
-                <SelectItem value="theme:vampire">Vampire</SelectItem>
-                <SelectItem value="theme:video%20game">Video Game</SelectItem>
-                <SelectItem value="theme:villainess">Villainess</SelectItem>
-                <SelectItem value="theme:visual%20arts">Visual Arts</SelectItem>
-                <SelectItem value="theme:workplace">Workplace</SelectItem>
+              <SelectContent>
+                {THEMES.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </ButtonGroup>
@@ -248,15 +174,36 @@ export const HomePageModule = () => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search entities, concepts, or relationships..."
+            placeholder="Search animes, characters, and more..."
             className="w-full px-4 py-3 outline-none text-slate-800"
           />
           <button type="submit" className="hidden"></button>
         </form>
 
+        {loading && (
+          <ul className="mt-4 w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+            {[...Array(5)].map((_, i) => (
+              <li key={i} className="flex items-start gap-4 pb-8">
+                <div className="w-20 h-28 rounded-lg bg-slate-200 animate-pulse" />
+                <div className="flex flex-col gap-2 flex-1">
+                  <div className="h-4 bg-slate-200 rounded w-3/4 animate-pulse" />
+                  <div className="h-3 bg-slate-200 rounded w-1/2 animate-pulse" />
+                  <div className="h-3 bg-slate-200 rounded w-1/3 mt-2 animate-pulse" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!loading && searchQuery !== 'first' && results.length === 0 && (
+          <p className="mt-12 text-slate-500">
+            No results found. Try searching for something else!
+          </p>
+        )}
+
         {/* results list */}
-        <div className="mt-4 w-full">
-          {searchQuery !== 'first' && (
+        <div className="mt-4 w-full pb-8">
+          {!loading && searchQuery !== 'first' && results.length > 0 && (
             <ul className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
               {results.map((item, index) => {
                 const placeholderImg =
@@ -281,15 +228,19 @@ export const HomePageModule = () => {
                     >
                       {/* IMAGE */}
                       {isAnime ? (
-                        <img
+                        <Image
                           src={item.image || placeholderImg}
                           alt={item.title}
+                          width={80}
+                          height={112}
                           className="w-20 h-28 object-cover rounded-lg border"
                         />
                       ) : (
-                        <img
+                        <Image
                           src={charPlaceholderImg}
                           alt="character"
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded-full border"
                         />
                       )}
@@ -326,9 +277,11 @@ export const HomePageModule = () => {
                         router.push(`/anime/${pk}`);
                       }}
                     >
-                      <img
+                      <Image
                         src={item.image || placeholderImg}
                         alt={item.title}
+                        width={80}
+                        height={112}
                         className="w-20 h-28 object-cover rounded-lg border"
                       />
 
@@ -358,9 +311,11 @@ export const HomePageModule = () => {
                         router.push(`/character/${pk}`);
                       }}
                     >
-                      <img
+                      <Image
                           src={charPlaceholderImg}
                           alt="character"
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded-lg border"
                       />
 
@@ -386,15 +341,6 @@ export const HomePageModule = () => {
           )}
         
         </div>
-
-        {/* info box */}
-        {selected && isOpen && (
-          <InfoModal
-            isOpen={isOpen}
-            onClose={() => setIsOpen(false)}
-            selected={selected}
-          />
-        )}
       </div>
     </main>
   )
