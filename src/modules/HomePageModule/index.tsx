@@ -151,7 +151,7 @@ export const HomePageModule = () => {
                 />
               </SelectTrigger>
 
-              <SelectContent>
+              <SelectContent className="max-h-64 overflow-y-auto">
                 {THEMES.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     {t.label}
