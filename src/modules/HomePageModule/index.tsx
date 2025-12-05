@@ -191,6 +191,7 @@ export const HomePageModule = () => {
             placeholder="Search entities, concepts, or relationships..."
             className="w-full px-4 py-3 outline-none text-slate-800"
           />
+          <button type="submit" className="hidden"></button>
         </form>
 
         {/* results list */}
@@ -198,42 +199,108 @@ export const HomePageModule = () => {
           {searchQuery !== 'first' && (
             <ul className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
               {results.map((item, index) => {
+                const placeholderImg =
+                  "https://placehold.co/80x110/png?text=No+Image";
 
-                // 1. ITEM DARI /search/all → Anime atau Character
+                const charPlaceholderImg =
+                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNwcJGXZGTtXwL4g3uisEOX71bNZsnyTmR4w&s";
+
+                // Search all
                 if ("typeLabel" in item) {
+                  const isAnime = item.typeLabel === "anime";
+
                   return (
-                    <li key={index} className="p-4 border-b">
-                      {item.typeLabel === "anime" ? (
-                        <p>{item.title}</p>
+                    <li
+                      key={index}
+                      className="flex items-start gap-4 p-4 hover:bg-slate-50 transition"
+                    >
+                      {/* IMAGE */}
+                      {isAnime ? (
+                        <img
+                          src={item.image || placeholderImg}
+                          alt={item.title}
+                          className="w-20 h-28 object-cover rounded-lg border"
+                        />
                       ) : (
-                        <p>{item.fullName}</p>
+                        <img
+                          src={charPlaceholderImg}
+                          alt="character"
+                          className="w-16 h-16 object-cover rounded-full border"
+                        />
                       )}
+
+                      {/* TEXT */}
+                      <div className="flex flex-col text-left">
+                        <p className="font-semibold text-lg">
+                          {isAnime ? item.title : item.fullName}
+                        </p>
+
+                        <span
+                          className={`text-xs mt-1 px-2 py-1 rounded-full capitalize w-fit
+                            ${item.typeLabel === "anime" 
+                              ? "bg-green-200 text-green-800" 
+                              : "bg-blue-200 text-blue-800"
+                            }`}
+                        >
+                          {item.typeLabel}
+                        </span>
+
+                      </div>
                     </li>
                   );
                 }
 
-                // 2. ITEM DARI /search/anime/query
+                // search anime
                 if ("anime" in item) {
                   return (
-                    <li key={index} className="p-4 border-b">
-                      <p>{item.title}</p>
-                      <p>{item.genres.join(", ")}</p>
+                    <li
+                      key={index}
+                      className="flex items-start gap-4 p-4 hover:bg-slate-50 transition"
+                    >
+                      <img
+                        src={item.image || placeholderImg}
+                        alt={item.title}
+                        className="w-20 h-28 object-cover rounded-lg border"
+                      />
+
+                      <div className="flex flex-col text-left">
+                        <p className="font-semibold text-lg">{item.title}</p>
+
+                        <p className="text-sm text-slate-600 mt-1">
+                          {item.genres.join(", ")}
+                        </p>
+
+                        <p className="text-sm mt-2 text-slate-700">
+                          ⭐ Score: {item.score || "N/A"}
+                        </p>
+                      </div>
                     </li>
                   );
                 }
 
-                // 3. ITEM DARI /search/character/query
+                //search character
                 if ("char" in item) {
                   return (
-                    <li key={index} className="p-4 border-b">
-                      <p>{item.name}</p>
-                      <p>{item.animeList.join(", ")}</p>
+                    <li
+                      key={index}
+                      className="flex flex-col text-left p-4 hover:bg-slate-50 transition"
+                    >
+                      <p className="font-semibold text-lg">{item.name}</p>
+
+                      <p className="text-sm text-slate-600 mt-1">
+                        Anime: {item.animeList.join(", ")}
+                      </p>
+
+                      <p className="text-sm mt-2 text-slate-700">
+                        ⭐ Score: {item.score || "N/A"}
+                      </p>
                     </li>
                   );
                 }
 
                 return null;
               })}
+
             </ul>
           )}
         
