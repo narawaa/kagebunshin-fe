@@ -33,20 +33,22 @@ export default function DetailCharacterPageModule({ pk }: Props) {
     fetchCharacterDetail(pk)
       .then((res: CharacterDetailResponseProps) => {
         console.debug('[DetailCharacterPageModule] raw response=', res);
-        if (res?.status === 200) {
-          let payload: any = res.data;
-          if (payload && !Array.isArray(payload)) payload = [payload];
-          if (Array.isArray(payload) && payload.length > 0) {
+        if (res?.status === 200 && res.data) {
+          let item: any = res.data;
+          // back-compat: if backend accidentally returns an array, take first
+          if (Array.isArray(item)) item = item[0] || null;
+
+          if (item) {
             // ensure attributes parsed from JSON string if needed
-            const item: CharacterDetailProps = payload[0];
             if (item.attributes && typeof item.attributes === 'string') {
               try {
-                (item as any).attributes = JSON.parse(item.attributes) as CharacterAttribute[];
+                item.attributes = JSON.parse(item.attributes) as CharacterAttribute[];
               } catch (e) {
                 console.warn('Failed to parse attributes JSON', e);
               }
             }
-            setData(item);
+
+            setData(item as CharacterDetailProps);
             try { console.log('[DetailCharacterPageModule] data JSON:\n' + JSON.stringify(item, null, 2)); } catch (e) { }
           } else {
             setData(null);
@@ -178,12 +180,10 @@ export default function DetailCharacterPageModule({ pk }: Props) {
               <strong>Alt Name:</strong>
               <div style={{ marginTop: 6 }}>{fieldOrEmpty(data.altName)}</div>
             </div>
-
             <div>
-              <strong>FOAF Name:</strong>
-              <div style={{ marginTop: 6 }}>{fieldOrEmpty(data.foafName)}</div>
+              <strong>Full Name:</strong>
+              <div style={{ marginTop: 6 }}>{fieldOrEmpty(data.fullName)}</div>
             </div>
-
             <div>
               <strong>Description:</strong>
               <div style={{ marginTop: 6, color: '#334155' }}>{fieldOrEmpty(data.description)}</div>
