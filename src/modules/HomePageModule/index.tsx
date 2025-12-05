@@ -104,14 +104,14 @@ export const HomePageModule = () => {
           <ButtonGroup className='border-2 border-black rounded-lg '>
             <Button
               onClick={() => handleFilterChange('anime')}
-              className={isActiveFilter && whichFilter === 'anime' ? 'bg-gray-700' : 'bg-black'}
+              className={isActiveFilter && whichFilter === 'anime' ? 'bg-gray-700' : 'bg-black text-muted-foreground'}
             >
               Anime
             </Button>
 
             <Button
               onClick={() => handleFilterChange('character')}
-              className={isActiveFilter && whichFilter === 'character' ? 'bg-gray-700' : 'bg-black'}
+              className={isActiveFilter && whichFilter === 'character' ? 'bg-gray-700' : 'bg-black text-muted-foreground'}
             >
               Character
             </Button>
@@ -125,8 +125,8 @@ export const HomePageModule = () => {
                   "h-9! min-w-[120px] px-4 border rounded-md flex items-center border-none",
                   "[&>span]:flex [&>span]:items-center",
                   isActiveFilter && whichFilter?.startsWith("genre:")
-                    ? "bg-gray-700 text-white"
-                    : "bg-black text-white"
+                    ? "bg-gray-700 text-white font-medium"
+                    : "bg-black text-white font-medium"
                 )}
               >
                 <SelectValue
