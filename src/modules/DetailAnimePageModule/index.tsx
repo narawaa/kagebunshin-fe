@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from 'next/link';
-import { fetchDetail } from "@/services/detailAnimeService";
+import { fetchAnimeDetail } from "@/services/detailAnimeService";
 import type { AnimeDetailProps, AnimeDetailResponseProps } from "./interface";
 
 type Props = {
@@ -18,7 +18,7 @@ export default function DetailAnimePageModule({ pk }: Props) {
     if (!pk) return;
     setLoading(true);
     setError(null);
-    fetchDetail(pk)
+    fetchAnimeDetail(pk)
       .then((res: AnimeDetailResponseProps) => {
         try { console.debug('[DetailAnimePageModule] raw response=', res); } catch (e) { /* ignore */ }
 

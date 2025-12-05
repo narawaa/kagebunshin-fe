@@ -2,7 +2,7 @@ import { AnimeDetailResponseProps } from "@/modules/DetailAnimePageModule/interf
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-export async function fetchDetail(pk: string): Promise<AnimeDetailResponseProps> {
+export async function fetchAnimeDetail(pk: string): Promise<AnimeDetailResponseProps> {
   try {
     const url = `${API}/search/anime/pk/?pk=${encodeURIComponent(pk)}`;
     console.debug('[detailAnimeService] fetchDetail pk=', pk, 'url=', url);
