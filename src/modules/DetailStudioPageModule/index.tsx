@@ -13,6 +13,7 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
+import { AnimeDetailSkeleton } from '@/components/skeletons/DetailSkeleton';
 
 type Props = { pk: string };
 
@@ -66,7 +67,10 @@ export default function DetailStudioPageModule({ pk }: Props) {
       .finally(() => setLoading(false));
   }, [pk]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return <AnimeDetailSkeleton />;
+  }
+
   if (error) return <div>{error}</div>;
   if (!data) return <div>Data tidak tersedia</div>;
 

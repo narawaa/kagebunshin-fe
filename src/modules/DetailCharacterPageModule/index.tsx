@@ -16,6 +16,7 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
+import { AnimeDetailSkeleton } from '@/components/skeletons/DetailSkeleton';
 
 type Props = { pk: string };
 
@@ -49,7 +50,7 @@ export default function DetailCharacterPageModule({ pk }: Props) {
             }
 
             setData(item as CharacterDetailProps);
-            try { console.log('[DetailCharacterPageModule] data JSON:\n' + JSON.stringify(item, null, 2)); } catch (e) { }
+            try { console.log('[DetailCharacterPageModule] data JSON:\n' + JSON.stringify(item, null, 2)); } catch { }
           } else {
             setData(null);
             setError(res?.message ?? 'Data tidak ditemukan');
@@ -66,18 +67,12 @@ export default function DetailCharacterPageModule({ pk }: Props) {
       .finally(() => setLoading(false));
   }, [pk]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return <AnimeDetailSkeleton />;
+  }
+
   if (error) return <div>{error}</div>;
   if (!data) return <div>Data tidak tersedia</div>;
-
-  const chipStyle: React.CSSProperties = {
-    display: 'inline-block',
-    padding: '4px 8px',
-    margin: '4px',
-    borderRadius: 9999,
-    background: '#f1f5f9',
-    fontSize: 12,
-  };
 
   const fieldOrEmpty = (value: any) => {
     if (value === null || value === undefined) return 'Informasi tidak tersedia.';
@@ -137,23 +132,6 @@ export default function DetailCharacterPageModule({ pk }: Props) {
       return null;
     }
     return null;
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    padding: '8px 12px',
-    margin: '6px 6px 6px 0',
-    borderRadius: 8,
-    border: '1px solid #e2e8f0',
-    background: 'white',
-    cursor: 'pointer',
-    color: '#0f172a',
-  };
-
-  const primaryButtonStyle: React.CSSProperties = {
-    ...buttonStyle,
-    background: '#2563eb',
-    color: 'white',
-    border: '1px solid #2563eb',
   };
 
   return (

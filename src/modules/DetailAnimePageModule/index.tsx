@@ -14,6 +14,8 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Image from "next/image";
+import { AnimeDetailSkeleton } from "@/components/skeletons/DetailSkeleton";
 
 type Props = {
   pk: string;
@@ -64,7 +66,10 @@ export default function DetailAnimePageModule({ pk }: Props) {
       .finally(() => setLoading(false));
   }, [pk]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return <AnimeDetailSkeleton />;
+  }
+
   if (error) return <div>{error}</div>;
   if (!data) return <div>Data tidak tersedia</div>;
   // helper: extract name from possible shapes
@@ -116,6 +121,7 @@ export default function DetailAnimePageModule({ pk }: Props) {
   };
 
   // helper: get character PK (from object or from URI/URL last segment)
+  
   const characterPk = (ch: any) => {
     if (!ch) return null;
     if (typeof ch === 'object') {
@@ -168,7 +174,14 @@ export default function DetailAnimePageModule({ pk }: Props) {
           <div style={{ display: 'flex', gap: 16 }}>
             {data.image ? (
               <div className="thumb" style={{ flex: '0 0 240px' }}>
-                <img src={data.image} alt={data.title} style={{ maxWidth: '100%', borderRadius: 8 }} />
+                <Image
+                  src={data.image}
+                  alt={data.title}
+                  width={240}
+                  height={340}
+                  className="rounded-lg object-cover"
+                />
+
               </div>
             ) : (
               <div className="thumb" style={{ flex: '0 0 240px', borderRadius: 8, background: '#f3f4f6', height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af' }}>
