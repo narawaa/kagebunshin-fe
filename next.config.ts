@@ -18,6 +18,16 @@ const nextConfig: NextConfig = {
         hostname: "static.vecteezy.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "commons.wikimedia.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "http",
+        hostname: "commons.wikimedia.org",
+        pathname: "/**",
+      },
     ],
   },
 };
