@@ -8,6 +8,14 @@ import type {
   CharacterDetailResponseProps,
   CharacterAttribute,
 } from './interface';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card';
 
 type Props = { pk: string };
 
@@ -67,6 +75,16 @@ export default function DetailCharacterPageModule({ pk }: Props) {
     borderRadius: 9999,
     background: '#f1f5f9',
     fontSize: 12,
+  };
+
+  const fieldOrEmpty = (value: any) => {
+    if (value === null || value === undefined) return 'Informasi tidak tersedia.';
+    if (Array.isArray(value)) {
+      if (value.length === 0) return 'Informasi tidak tersedia.';
+      return value.join(', ');
+    }
+    if (typeof value === 'string' && value.trim() === '') return 'Informasi tidak tersedia.';
+    return String(value);
   };
 
   const nameOf = (v: any) => {
@@ -138,47 +156,63 @@ export default function DetailCharacterPageModule({ pk }: Props) {
 
   return (
     <div className="detail-character min-h-screen" style={{ maxWidth: 880, margin: '0 auto', padding: 24 }}>
-      <div style={{ background: 'white', borderRadius: 12, boxShadow: '0 6px 18px rgba(15,23,42,0.06)', padding: 20 }}>
-        <h1 style={{ fontSize: 34, margin: '4px 0 12px 0', textAlign: 'center', lineHeight: 1.05 }}>{data.name}</h1>
+      <Card>
+        <CardHeader>
+          <div style={{ textAlign: 'center' }}>
+            <CardTitle style={{ fontSize: 34, lineHeight: 1.05 }}>{fieldOrEmpty(data.name)}</CardTitle>
+            <CardDescription style={{ marginTop: 8 }}>
+              {data.url ? (
+                <a href={data.url} target="_blank" rel="noreferrer" style={{ color: '#2563eb' }}>
+                  MyAnimeList Page
+                </a>
+              ) : (
+                'Informasi tidak tersedia.'
+              )}
+            </CardDescription>
+          </div>
+        </CardHeader>
 
-        <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-          {data.url && (
-            <div style={{ flex: '0 0 160px' }}>
-              <a href={data.url} target="_blank" rel="noreferrer" style={{ color: '#2563eb' }}>
-                External Link
-              </a>
+        <CardContent>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+            <div>
+              <strong>Alt Name:</strong>
+              <div style={{ marginTop: 6 }}>{fieldOrEmpty(data.altName)}</div>
             </div>
-          )}
 
-          <div style={{ flex: 1 }}>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-              {data.altName && <div style={{ color: '#475569' }}><strong>Alt:</strong> {data.altName}</div>}
-              {data.foafName && <div style={{ color: '#475569' }}><strong>FOAF:</strong> {data.foafName}</div>}
+            <div>
+              <strong>FOAF Name:</strong>
+              <div style={{ marginTop: 6 }}>{fieldOrEmpty(data.foafName)}</div>
             </div>
 
-            {data.description && <p style={{ color: '#334155', marginTop: 4 }}>{data.description}</p>}
+            <div>
+              <strong>Description:</strong>
+              <div style={{ marginTop: 6, color: '#334155' }}>{fieldOrEmpty(data.description)}</div>
+            </div>
 
-            {Array.isArray(data.attributes) && data.attributes.length > 0 && (
-              <div style={{ marginTop: 12 }}>
-                <strong>Attributes</strong>
-                <ul style={{ marginTop: 8 }}>
-                  {data.attributes.map((a, i) => (
-                    <li key={i} style={{ marginBottom: 6 }}>
-                      <strong>{a.name}:</strong> <span style={{ marginLeft: 6 }}>{a.value}</span>
-                    </li>
-                  ))}
-                </ul>
+            <div>
+              <strong>Attributes:</strong>
+              <div style={{ marginTop: 6 }}>
+                {Array.isArray(data.attributes) && data.attributes.length > 0 ? (
+                  <ul>
+                    {data.attributes.map((a, i) => (
+                      <li key={i} style={{ marginBottom: 6 }}>
+                        <strong>{a.name}:</strong> <span style={{ marginLeft: 6 }}>{a.value ?? 'Informasi tidak tersedia.'}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div>Informasi tidak tersedia.</div>
+                )}
               </div>
-            )}
+            </div>
 
-            {Array.isArray(data.animeList) && data.animeList.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <strong>Appears In</strong>
-                <div style={{ marginTop: 10 }} className="appears-grid">
-                  {data.animeList.map((t, i) => {
+            <div>
+              <strong>Appears In:</strong>
+              <div style={{ marginTop: 10 }} className="appears-grid">
+                {Array.isArray(data.animeList) && data.animeList.length > 0 ? (
+                  data.animeList.map((t, i) => {
                     const label = nameOf(t);
                     const pk = animePk(t);
-
                     const resolving = !!resolvingMap[i];
 
                     const handleClick = async () => {
@@ -187,7 +221,6 @@ export default function DetailCharacterPageModule({ pk }: Props) {
                         return;
                       }
 
-                      // resolve by querying the backend search endpoint
                       try {
                         setResolvingMap((m) => ({ ...m, [i]: true }));
                         const API = process.env.NEXT_PUBLIC_API_URL || '';
@@ -209,7 +242,6 @@ export default function DetailCharacterPageModule({ pk }: Props) {
                           }
                         }
 
-                        // fallback: notify user if not found
                         alert(`Tidak dapat menemukan anime untuk "${label}"`);
                       } catch (e) {
                         console.error('[DetailCharacter] resolve error', e);
@@ -231,13 +263,17 @@ export default function DetailCharacterPageModule({ pk }: Props) {
                         {resolving ? 'Loading…' : label}
                       </button>
                     );
-                  })}
-                </div>
+                  })
+                ) : (
+                  <div>Informasi tidak tersedia.</div>
+                )}
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+
+        <CardFooter />
+      </Card>
     </div>
   );
 }
