@@ -10,20 +10,29 @@ import { ButtonGroup } from '@/components/ui/button-group'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { useRouter } from "next/navigation";
+
 
 export const HomePageModule = () => {
   const [query, setQuery] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('first');
   const [results, setResults] = useState<(SearchAllResult | SearchAnimeResult | SearchCharacterResult)[]>([]);
-
+  
   // state for selected item detail, abaikan, nanti ga dipakai
   const [selected, setSelected] = useState<SearchResultProps | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
+  
   // state for filter: isActiveFilter nunjukin apakah ada filter yg aktif, whichFilter nunjukin filter apa yg aktif (anime/character/theme:namatheme)
   const [isActiveFilter, setIsActiveFilter] = useState<boolean>(false);
   const [whichFilter, setWhichFilter] = useState<string | null>(null)
   
+  const router = useRouter();
+  
+  const getPkFromResource = (resource: string) => {
+    const parts = resource.split("/");
+    return parts[parts.length - 1];
+  };
+    
   // dummy data
   const dummyData = [
     {
@@ -264,6 +273,11 @@ export const HomePageModule = () => {
                     <li
                       key={index}
                       className="flex items-start gap-4 p-4 hover:bg-slate-50 transition"
+                      onClick={() => {
+                        const pk = getPkFromResource(item.resource);
+                        const basePath = isAnime ? "/anime" : "/character";
+                        router.push(`${basePath}/${pk}`);
+                      }}
                     >
                       {/* IMAGE */}
                       {isAnime ? (
@@ -307,6 +321,10 @@ export const HomePageModule = () => {
                     <li
                       key={index}
                       className="flex items-start gap-4 p-4 hover:bg-slate-50 transition"
+                      onClick={() => {
+                        const pk = getPkFromResource(item.anime);
+                        router.push(`/anime/${pk}`);
+                      }}
                     >
                       <img
                         src={item.image || placeholderImg}
@@ -335,6 +353,10 @@ export const HomePageModule = () => {
                     <li
                       key={index}
                       className="flex items-start gap-4 p-4 hover:bg-slate-50 transition"
+                      onClick={() => {
+                        const pk = getPkFromResource(item.char);
+                        router.push(`/character/${pk}`);
+                      }}
                     >
                       <img
                           src={charPlaceholderImg}
