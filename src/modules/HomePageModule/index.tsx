@@ -5,7 +5,7 @@ import { Search, Info, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { InfoModal } from './components/InfoModal'
 import { SearchAllResult, SearchAnimeResult, SearchCharacterResult, SearchResultProps } from './interface'
-import { searchAll, searchAnime, searchCharacter, searchAnimeByGenre } from "@/services/searchService";
+import { searchAll, searchAnime, searchCharacter, searchAnimeByTheme } from "@/services/searchService";
 import { ButtonGroup } from '@/components/ui/button-group'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -20,7 +20,7 @@ export const HomePageModule = () => {
   const [selected, setSelected] = useState<SearchResultProps | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  // state for filter: isActiveFilter nunjukin apakah ada filter yg aktif, whichFilter nunjukin filter apa yg aktif (anime/character/genre:namagenre)
+  // state for filter: isActiveFilter nunjukin apakah ada filter yg aktif, whichFilter nunjukin filter apa yg aktif (anime/character/theme:namatheme)
   const [isActiveFilter, setIsActiveFilter] = useState<boolean>(false);
   const [whichFilter, setWhichFilter] = useState<string | null>(null)
   
@@ -53,17 +53,19 @@ export const HomePageModule = () => {
     if (whichFilter === filter) {
       setIsActiveFilter(!isActiveFilter);
       setWhichFilter(null);
+
       return;
     }
     
     setIsActiveFilter(true);
     setWhichFilter(filter);
+
   }
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e?: React.FormEvent) => {
     setSearchQuery(query)
 
-    e.preventDefault()
+    if (e) e.preventDefault();
     if (query.trim() === '') {
       setResults([])
       setSelected(null)
@@ -73,31 +75,31 @@ export const HomePageModule = () => {
     try {
       let response;
 
-      // 1. NO FILTER → /search/all/query
+      // 1. no filter
       if (!isActiveFilter || whichFilter === null) {
         response = await searchAll(query);
         setResults(response.data);
         return;
       }
 
-      // 2. ANIME FILTER
+      // 2. anime filter
       if (whichFilter === "anime") {
         response = await searchAnime(query);
         setResults(response.data);
         return;
       }
 
-      // 3. CHARACTER FILTER
+      // 3. character filter
       if (whichFilter === "character") {
         response = await searchCharacter(query);
         setResults(response.data);
         return;
       }
 
-      // 4. GENRE FILTER
-      if (whichFilter.startsWith("genre:")) {
-        const genre = whichFilter.split(":")[1];
-        response = await searchAnimeByGenre(query, genre);
+      // 4. theme filter
+      if (whichFilter.startsWith("theme:")) {
+        const theme = whichFilter.split(":")[1];
+        response = await searchAnimeByTheme(query, theme);
         setResults(response.data);
         return;
       }
@@ -149,28 +151,77 @@ export const HomePageModule = () => {
             </Button>
 
             <Select
-              value={whichFilter?.startsWith("genre:") ? whichFilter : ""}
+              value={whichFilter?.startsWith("theme:") ? whichFilter : ""}
               onValueChange={(v) => handleFilterChange(v)}
             >
               <SelectTrigger
                 className={cn(
                   "h-9! min-w-[120px] px-4 border rounded-md flex items-center border-none",
                   "[&>span]:flex [&>span]:items-center",
-                  isActiveFilter && whichFilter?.startsWith("genre:")
+                  isActiveFilter && whichFilter?.startsWith("theme:")
                     ? "bg-gray-700 text-white font-medium"
                     : "bg-black text-white font-medium"
                 )}
               >
                 <SelectValue
-                  placeholder="Genre"
+                  placeholder="Theme"
                   className="text-white data-placeholder:text-white"
                 />
               </SelectTrigger>
 
-              <SelectContent>
-                <SelectItem value="genre:action">Action</SelectItem>
-                <SelectItem value="genre:romance">Romance</SelectItem>
-                <SelectItem value="genre:fantasy">Fantasy</SelectItem>
+              <SelectContent className="max-h-64 overflow-y-auto">
+                <SelectItem value="theme:adult%20cast">Adult Cast</SelectItem>
+                <SelectItem value="theme:anthropomorphic">Anthropomorphic</SelectItem>
+                <SelectItem value="theme:cgdct">CGDCT</SelectItem>
+                <SelectItem value="theme:childcare">Childcare</SelectItem>
+                <SelectItem value="theme:combat%20sports">Combat Sports</SelectItem>
+                <SelectItem value="theme:crossdressing">Crossdressing</SelectItem>
+                <SelectItem value="theme:delinquents">Delinquents</SelectItem>
+                <SelectItem value="theme:detective">Detective</SelectItem>
+                <SelectItem value="theme:educational">Educational</SelectItem>
+                <SelectItem value="theme:gag%20humor">Gag Humor</SelectItem>
+                <SelectItem value="theme:gore">Gore</SelectItem>
+                <SelectItem value="theme:harem">Harem</SelectItem>
+                <SelectItem value="theme:high%20stakes%20game">High Stakes Game</SelectItem>
+                <SelectItem value="theme:historical">Historical</SelectItem>
+                <SelectItem value="theme:idols%20female">Idols (Female)</SelectItem>
+                <SelectItem value="theme:idols%20male">Idols (Male)</SelectItem>
+                <SelectItem value="theme:isekai">Isekai</SelectItem>
+                <SelectItem value="theme:iyashikei">Iyashikei</SelectItem>
+                <SelectItem value="theme:love%20polygon">Love Polygon</SelectItem>
+                <SelectItem value="theme:love%20status%20quo">Love Status Quo</SelectItem>
+                <SelectItem value="theme:magical%20sex%20shift">Magical Sex Shift</SelectItem>
+                <SelectItem value="theme:mahou%20shoujo">Mahou Shoujo</SelectItem>
+                <SelectItem value="theme:martial%20arts">Martial Arts</SelectItem>
+                <SelectItem value="theme:mecha">Mecha</SelectItem>
+                <SelectItem value="theme:medical">Medical</SelectItem>
+                <SelectItem value="theme:military">Military</SelectItem>
+                <SelectItem value="theme:music">Music</SelectItem>
+                <SelectItem value="theme:mythology">Mythology</SelectItem>
+                <SelectItem value="theme:organized%20crime">Organized Crime</SelectItem>
+                <SelectItem value="theme:otaku%20culture">Otaku Culture</SelectItem>
+                <SelectItem value="theme:parody">Parody</SelectItem>
+                <SelectItem value="theme:performing%20arts">Performing Arts</SelectItem>
+                <SelectItem value="theme:pets">Pets</SelectItem>
+                <SelectItem value="theme:psychological">Psychological</SelectItem>
+                <SelectItem value="theme:racing">Racing</SelectItem>
+                <SelectItem value="theme:reincarnation">Reincarnation</SelectItem>
+                <SelectItem value="theme:reverse%20harem">Reverse Harem</SelectItem>
+                <SelectItem value="theme:samurai">Samurai</SelectItem>
+                <SelectItem value="theme:school">School</SelectItem>
+                <SelectItem value="theme:showbiz">Showbiz</SelectItem>
+                <SelectItem value="theme:space">Space</SelectItem>
+                <SelectItem value="theme:strategy%20game">Strategy Game</SelectItem>
+                <SelectItem value="theme:super%20power">Super Power</SelectItem>
+                <SelectItem value="theme:survival">Survival</SelectItem>
+                <SelectItem value="theme:team%20sports">Team Sports</SelectItem>
+                <SelectItem value="theme:time%20travel">Time Travel</SelectItem>
+                <SelectItem value="theme:urban%20fantasy">Urban Fantasy</SelectItem>
+                <SelectItem value="theme:vampire">Vampire</SelectItem>
+                <SelectItem value="theme:video%20game">Video Game</SelectItem>
+                <SelectItem value="theme:villainess">Villainess</SelectItem>
+                <SelectItem value="theme:visual%20arts">Visual Arts</SelectItem>
+                <SelectItem value="theme:workplace">Workplace</SelectItem>
               </SelectContent>
             </Select>
           </ButtonGroup>
@@ -200,7 +251,7 @@ export const HomePageModule = () => {
             <ul className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
               {results.map((item, index) => {
                 const placeholderImg =
-                  "https://placehold.co/80x110/png?text=No+Image";
+                  "https://static.vecteezy.com/system/resources/thumbnails/007/126/491/small/music-play-button-icon-vector.jpg";
 
                 const charPlaceholderImg =
                   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNwcJGXZGTtXwL4g3uisEOX71bNZsnyTmR4w&s";
@@ -267,7 +318,7 @@ export const HomePageModule = () => {
                         <p className="font-semibold text-lg">{item.title}</p>
 
                         <p className="text-sm text-slate-600 mt-1">
-                          {item.genres.join(", ")}
+                          {item.themes.join(", ")}
                         </p>
 
                         <p className="text-sm mt-2 text-slate-700">
@@ -283,17 +334,25 @@ export const HomePageModule = () => {
                   return (
                     <li
                       key={index}
-                      className="flex flex-col text-left p-4 hover:bg-slate-50 transition"
+                      className="flex items-start gap-4 p-4 hover:bg-slate-50 transition"
                     >
-                      <p className="font-semibold text-lg">{item.name}</p>
+                      <img
+                          src={charPlaceholderImg}
+                          alt="character"
+                          className="w-16 h-16 object-cover rounded-lg border"
+                      />
 
-                      <p className="text-sm text-slate-600 mt-1">
-                        Anime: {item.animeList.join(", ")}
-                      </p>
+                      <div className="flex flex-col text-left">
+                        <p className="font-semibold text-lg">{item.name}</p>
 
-                      <p className="text-sm mt-2 text-slate-700">
-                        ⭐ Score: {item.score || "N/A"}
-                      </p>
+                        <p className="text-sm text-slate-600 mt-1">
+                          Anime: {item.animeList.join(", ")}
+                        </p>
+
+                        <p className="text-sm mt-2 text-slate-700">
+                          ⭐ Score: {item.score || "N/A"}
+                        </p>
+                      </div>
                     </li>
                   );
                 }

@@ -32,13 +32,13 @@ export async function searchAnime(query: string): Promise<SearchAnimeResultRespo
   }
 }
 
-export async function searchAnimeByGenre(
+export async function searchAnimeByTheme(
   query: string,
-  genre: string
+  theme: string
 ): Promise<SearchAnimeResultResponse> {
   try {
     const response = await fetch(
-      `${API}/search/anime/query/?search=${query}&genre=${genre}`
+      `${API}/search/anime/query/?search=${query}&theme=${theme}`
     );
     return await response.json();
   } catch {

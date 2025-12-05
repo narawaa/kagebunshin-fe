@@ -25,7 +25,7 @@ export interface SearchAnimeResult {
   anime: string;
   image: string;
   title: string;
-  genres: string[];
+  themes: string[];
   score: number;
 }
 
