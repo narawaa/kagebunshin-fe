@@ -6,6 +6,7 @@ export interface StudioDetailProps {
   originCountry?: string;     
   officialWebsite?: string;  
   logo?: string;              
+  localAnime?: Array<{ uri?: string; title?: string }>;
 }
 
 export interface StudioDetailResponseProps {

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import fetchStudioDetail from '@/services/detailStudioService';
 import type { StudioDetailProps, StudioDetailResponseProps } from './interface';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardHeader,
@@ -20,7 +21,7 @@ export default function DetailStudioPageModule({ pk }: Props) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<StudioDetailProps | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [resolvingMap, setResolvingMap] = useState<Record<number, boolean>>({});
+  const [tooltipMap, setTooltipMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!pk) return;
@@ -47,6 +48,9 @@ export default function DetailStudioPageModule({ pk }: Props) {
             originCountry: payload.originCountry,
             officialWebsite: payload.officialWebsite,
             logo: payload.logo,
+            localAnime: Array.isArray(payload.localAnime)
+              ? payload.localAnime.map((a: any) => ({ uri: a?.uri ?? a?.anime ?? a?.resource, title: a?.title ?? a?.name ?? a?.label }))
+              : [],
           };
 
           setData(normalized);
@@ -189,59 +193,68 @@ export default function DetailStudioPageModule({ pk }: Props) {
               <strong>Notable Works:</strong>
               <div style={{ marginTop: 6 }}>
                 {Array.isArray(data.notableWorks) && data.notableWorks.length > 0 ? (
-                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {data.notableWorks.map((w, i) => {
-                      const label = nameOf(w);
-                      const pk = animePk(w);
-                      const resolving = !!resolvingMap[i];
+                  <ul>
+                    {data.notableWorks.map((w, i) => (
+                      <li key={i} style={{ marginBottom: 6 }}>{nameOf(w)}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div>Informasi tidak tersedia.</div>
+                )}
+              </div>
+            </div>
 
-                      const handleClick = async () => {
+            <div>
+              <strong>List of Works:</strong>
+              <div style={{ marginTop: 6 }}>
+                {Array.isArray(data.localAnime) && data.localAnime.length > 0 ? (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {data.localAnime.map((a, i) => {
+                      const label = a?.title || nameOf(a?.uri);
+                      const pk = animePk(a?.uri);
+                      const handleClick = () => {
                         if (pk) {
                           router.push(`/anime/${encodeURIComponent(pk)}`);
-                          return;
-                        }
-
-                        try {
-                          setResolvingMap((m) => ({ ...m, [i]: true }));
-                          const API = process.env.NEXT_PUBLIC_API_URL || '';
-                          const url = `${API}/search/anime/query/?search=${encodeURIComponent(label)}`;
-                          console.debug('[DetailCharacter] resolving anime', label, 'via', url);
-                          const res = await fetch(url);
-                          const json = await res.json();
-                          console.debug('[DetailCharacter] resolver response', json);
-                          if (res.ok && json?.status === 200 && Array.isArray(json.data) && json.data.length > 0) {
-                            const found = json.data[0];
-                            const animeUri = found.anime || found.uri || found.resource || found?.anime;
-                            if (animeUri && typeof animeUri === 'string') {
-                              const parts = animeUri.split('/').filter(Boolean);
-                              const resolvedPk = parts.pop();
-                              if (resolvedPk) {
-                                router.push(`/anime/${encodeURIComponent(resolvedPk)}`);
-                                return;
-                              }
-                            }
-                          }
-
-                          alert(`Tidak dapat menemukan anime untuk "${label}"`);
-                        } catch (e) {
-                          console.error('[DetailCharacter] resolve error', e);
-                          alert('Terjadi kesalahan saat mencari anime');
-                        } finally {
-                          setResolvingMap((m) => ({ ...m, [i]: false }));
+                        } else {
+                          alert(`Tidak dapat menavigasi ke anime (pk tidak ditemukan) untuk: ${label}`);
                         }
                       };
 
+                      const show = !!tooltipMap[String(i)];
+
                       return (
-                        <button
-                          key={i}
-                          className={"btn " + (pk ? 'btn-primary' : 'btn') + ' appears-btn'}
-                          onClick={handleClick}
-                          title={pk ? `Open anime ${label}` : `Resolve and open ${label}`}
-                          aria-label={pk ? `Open anime ${label}` : `Resolve and open ${label}`}
-                          disabled={false}
-                        >
-                          {resolving ? 'Loading…' : label}
-                        </button>
+                        <div key={a?.uri || i} style={{ position: 'relative', display: 'inline-block' }}>
+                          <div
+                            style={{
+                              position: 'absolute',
+                              bottom: 'calc(100% + 8px)',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              background: 'rgba(17,24,39,0.95)',
+                              color: '#fff',
+                              padding: '6px 8px',
+                              borderRadius: 6,
+                              fontSize: 12,
+                              whiteSpace: 'nowrap',
+                              boxShadow: '0 6px 18px rgba(0,0,0,0.12)',
+                              opacity: show ? 1 : 0,
+                              pointerEvents: show ? 'auto' : 'none',
+                              transition: 'opacity 0.12s ease-in-out'
+                            }}
+                            aria-hidden={!show}
+                          >
+                            {`Buka: ${label}`}
+                          </div>
+
+                          <div
+                            onMouseEnter={() => setTooltipMap((m) => ({ ...m, [String(i)]: true }))}
+                            onMouseLeave={() => setTooltipMap((m) => ({ ...m, [String(i)]: false }))}
+                          >
+                            <Button variant="secondary" size="sm" onClick={handleClick}>
+                              {label}
+                            </Button>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
