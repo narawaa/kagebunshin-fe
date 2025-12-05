@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { Search, Info, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { InfoModal } from './components/InfoModal'
-import { SearchResultProps } from './interface'
+import { SearchAllResult, SearchAnimeResult, SearchCharacterResult, SearchResultProps } from './interface'
+import { searchAll, searchAnime, searchCharacter, searchAnimeByGenre } from "@/services/searchService";
 import { ButtonGroup } from '@/components/ui/button-group'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -13,7 +14,7 @@ import { cn } from '@/lib/utils'
 export const HomePageModule = () => {
   const [query, setQuery] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('first');
-  const [results, setResults] = useState<SearchResultProps[]>([]);
+  const [results, setResults] = useState<(SearchAllResult | SearchAnimeResult | SearchCharacterResult)[]>([]);
 
   // state for selected item detail, abaikan, nanti ga dipakai
   const [selected, setSelected] = useState<SearchResultProps | null>(null);
@@ -59,7 +60,7 @@ export const HomePageModule = () => {
     setWhichFilter(filter);
   }
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     setSearchQuery(query)
 
     e.preventDefault()
@@ -69,11 +70,42 @@ export const HomePageModule = () => {
       return
     }
 
-    const filtered = dummyData.filter((item) =>
-      item.label.toLowerCase().includes(query.toLowerCase())
-    )
-    setResults(filtered)
-    setSelected(null)
+    try {
+      let response;
+
+      // 1. NO FILTER → /search/all/query
+      if (!isActiveFilter || whichFilter === null) {
+        response = await searchAll(query);
+        setResults(response.data);
+        return;
+      }
+
+      // 2. ANIME FILTER
+      if (whichFilter === "anime") {
+        response = await searchAnime(query);
+        setResults(response.data);
+        return;
+      }
+
+      // 3. CHARACTER FILTER
+      if (whichFilter === "character") {
+        response = await searchCharacter(query);
+        setResults(response.data);
+        return;
+      }
+
+      // 4. GENRE FILTER
+      if (whichFilter.startsWith("genre:")) {
+        const genre = whichFilter.split(":")[1];
+        response = await searchAnimeByGenre(query, genre);
+        setResults(response.data);
+        return;
+      }
+
+    } catch (error) {
+      console.error("Search error:", error);
+      setResults([]);
+    }
   }
 
   const handleDetail = (item: SearchResultProps) => {
@@ -165,43 +197,43 @@ export const HomePageModule = () => {
         <div className="mt-4 w-full">
           {searchQuery !== 'first' && (
             <ul className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
-              {results.map((item) => (
-                <li
-                  key={item.id}
-                  className="p-4 hover:bg-slate-50 hover:rounded-2xl cursor-pointer"
-                  onClick={() => handleDetail(item)}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-lg font-medium text-slate-800">{item.label}</p>
-                      <p className="text-sm text-left text-slate-500">{item.type}</p>
-                    </div>
-                    
-                    <div className="relative w-5 h-5">
-                      <X
-                        className={`absolute inset-0 text-slate-400 transition-all duration-200 ${
-                          isOpen && selected && selected.id === item.id ? "opacity-100 scale-100" : "opacity-0 scale-75"
-                        }`}
-                        size={18}
-                      />
-                      <Info
-                        className={`absolute inset-0 text-slate-400 transition-all duration-200 ${
-                          isOpen && selected && selected.id === item.id ? "opacity-0 scale-75" : "opacity-100 scale-100"
-                        }`}
-                        size={18}
-                      />
-                    </div>
+              {results.map((item, index) => {
 
-                  </div>
-                </li>
-              ))}
+                // 1. ITEM DARI /search/all → Anime atau Character
+                if ("typeLabel" in item) {
+                  return (
+                    <li key={index} className="p-4 border-b">
+                      {item.typeLabel === "anime" ? (
+                        <p>{item.title}</p>
+                      ) : (
+                        <p>{item.fullName}</p>
+                      )}
+                    </li>
+                  );
+                }
 
-              {results.length === 0 && (
-                <p className="w-3/4 mx-auto text-slate-500 py-4 my-4 text-sm text-center border border-gray-200 border-dashed rounded-lg">
-                  No results found for &quot;{searchQuery}&quot;. Try another term.
-                </p>
-              )}
+                // 2. ITEM DARI /search/anime/query
+                if ("anime" in item) {
+                  return (
+                    <li key={index} className="p-4 border-b">
+                      <p>{item.title}</p>
+                      <p>{item.genres.join(", ")}</p>
+                    </li>
+                  );
+                }
 
+                // 3. ITEM DARI /search/character/query
+                if ("char" in item) {
+                  return (
+                    <li key={index} className="p-4 border-b">
+                      <p>{item.name}</p>
+                      <p>{item.animeList.join(", ")}</p>
+                    </li>
+                  );
+                }
+
+                return null;
+              })}
             </ul>
           )}
         
