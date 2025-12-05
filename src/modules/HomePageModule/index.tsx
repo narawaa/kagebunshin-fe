@@ -5,13 +5,23 @@ import { Search, Info, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { InfoModal } from './components/InfoModal'
 import { SearchResultProps } from './interface'
+import { ButtonGroup } from '@/components/ui/button-group'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 
 export const HomePageModule = () => {
   const [query, setQuery] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('first');
   const [results, setResults] = useState<SearchResultProps[]>([]);
+
+  // state for selected item detail, abaikan, nanti ga dipakai
   const [selected, setSelected] = useState<SearchResultProps | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  // state for filter: isActiveFilter nunjukin apakah ada filter yg aktif, whichFilter nunjukin filter apa yg aktif (anime/character/genre:namagenre)
+  const [isActiveFilter, setIsActiveFilter] = useState<boolean>(false);
+  const [whichFilter, setWhichFilter] = useState<string | null>(null)
   
   // dummy data
   const dummyData = [
@@ -37,6 +47,17 @@ export const HomePageModule = () => {
       born: '-',
     },
   ]
+  
+  const handleFilterChange = (filter: string) => {
+    if (whichFilter === filter) {
+      setIsActiveFilter(!isActiveFilter);
+      setWhichFilter(null);
+      return;
+    }
+    
+    setIsActiveFilter(true);
+    setWhichFilter(filter);
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     setSearchQuery(query)
@@ -69,7 +90,7 @@ export const HomePageModule = () => {
   return (
     <main className="min-h-screen flex flex-col items-center px-4 md:px-8 lg:px-16 bg-linear-to-b from-white to-slate-100">
       {/* header */}
-      <div className="mt-32 text-center">
+      <div className="flex flex-col items-center mt-32 text-center w-full">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,12 +99,57 @@ export const HomePageModule = () => {
           Search Your Anime
         </motion.h1>
 
+        <div className='flex flex-row items-center gap-3 mb-3 pt-8'>
+          <p className='text-xs md:text-sm font-bold'>Filter pencarian berdasarkan:</p>
+          <ButtonGroup className='border-2 border-black rounded-lg '>
+            <Button
+              onClick={() => handleFilterChange('anime')}
+              className={isActiveFilter && whichFilter === 'anime' ? 'bg-gray-700' : 'bg-black'}
+            >
+              Anime
+            </Button>
+
+            <Button
+              onClick={() => handleFilterChange('character')}
+              className={isActiveFilter && whichFilter === 'character' ? 'bg-gray-700' : 'bg-black'}
+            >
+              Character
+            </Button>
+
+            <Select
+              value={whichFilter?.startsWith("genre:") ? whichFilter : ""}
+              onValueChange={(v) => handleFilterChange(v)}
+            >
+              <SelectTrigger
+                className={cn(
+                  "h-9! min-w-[120px] px-4 border rounded-md flex items-center border-none",
+                  "[&>span]:flex [&>span]:items-center",
+                  isActiveFilter && whichFilter?.startsWith("genre:")
+                    ? "bg-gray-700 text-white"
+                    : "bg-black text-white"
+                )}
+              >
+                <SelectValue
+                  placeholder="Genre"
+                  className="text-white data-placeholder:text-white"
+                />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="genre:action">Action</SelectItem>
+                <SelectItem value="genre:romance">Romance</SelectItem>
+                <SelectItem value="genre:fantasy">Fantasy</SelectItem>
+              </SelectContent>
+            </Select>
+          </ButtonGroup>
+        </div>
+
         {/* search bar */}
         <form
           onSubmit={handleSearch}
-          className="flex items-center w-full max-w-xl bg-white border-2 border-black rounded-full shadow-sm overflow-hidden"
+          className="flex items-center w-full max-w-3xl bg-white border-2 border-black rounded-2xl shadow-sm overflow-hidden"
         >
-          <div className='bg-black rounded-l-full py-3.5 pr-3'>
+          <div className='bg-black rounded-l-xl py-3.5 pr-3'>
             <Search className="ml-4 text-orange-500" strokeWidth={3} size={20} />
           </div>
           <input
@@ -138,8 +204,7 @@ export const HomePageModule = () => {
 
             </ul>
           )}
-          
-
+        
         </div>
 
         {/* info box */}
